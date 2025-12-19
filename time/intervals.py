@@ -1,4 +1,4 @@
-from time_rep import TimePoint
+from time.time_rep import TimePoint
 from dataclasses import dataclass
 
 @dataclass(frozen=True)

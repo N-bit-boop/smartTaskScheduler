@@ -1,4 +1,6 @@
+from time.time_rep import TimePoint
 from time.intervals import TimeInterval
+from tasks import Task
 
 
 def feasibility(deadline_tasks: list[Task], free_intervals: list[TimeInterval]) -> tuple[bool, list[Task]]:
@@ -18,9 +20,7 @@ def feasibility(deadline_tasks: list[Task], free_intervals: list[TimeInterval]) 
     return len(infeasible) == 0, infeasible
 
 
-def resolve_deadlines(free_intervals: list[TimeInterval],
-                      deadline_tasks: list[Task],
-                      non_deadline_tasks: list[Task]) -> tuple[bool, list[TimeInterval], list[Task], list[Task]]:
+def resolve_deadlines(free_intervals: list[TimeInterval], deadline_tasks: list[Task], non_deadline_tasks: list[Task]) -> tuple[bool, list[TimeInterval], list[Task], list[Task]]:
 
     remaining_non_deadline = non_deadline_tasks.copy()
     dropped = []
