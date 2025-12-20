@@ -1,24 +1,38 @@
-from time.time_rep import TimePoint
-from time.intervals import TimeInterval
-from tasks import Task
+from timecore.time_rep import TimePoint
+from timecore.intervals import TimeInterval
+from domain.tasks import Task
+
 
 
 def feasibility(deadline_tasks: list[Task], free_intervals: list[TimeInterval]) -> tuple[bool, list[Task]]:
+    simulated_free = list(free_intervals)
     infeasible = []
 
-    for task in deadline_tasks:
-        fits = False
-        for interval in free_intervals:
-            latest_end = task.deadline.minute if task.deadline else interval.end.minute
-            available_minutes = min(interval.end.minute, latest_end) - interval.start.minute
-            if available_minutes >= task.duration:
-                fits = True
+    for task in sorted(deadline_tasks, key=lambda t: t.deadline.minute()):
+        placed = False
+
+        for interval in simulated_free:
+            latest_end = task.deadline.minute()
+            usable_end = min(interval.end.minute(), latest_end)
+            available = usable_end - interval.start.minute()
+
+            if available >= task.duration:
+                start = interval.start.minute()
+                end = start + task.duration
+                assigned = TimeInterval(TimePoint(start), TimePoint(end))
+
+                next_free = []
+                for free in simulated_free:
+                    next_free.extend(free.subtract(assigned))
+                simulated_free = next_free
+
+                placed = True
                 break
-        if not fits:
+
+        if not placed:
             infeasible.append(task)
 
-    return len(infeasible) == 0, infeasible
-
+    return len(infeasible) == 0, infeasible, simulated_free
 
 def resolve_deadlines(free_intervals: list[TimeInterval], deadline_tasks: list[Task], non_deadline_tasks: list[Task]) -> tuple[bool, list[TimeInterval], list[Task], list[Task]]:
 
@@ -26,14 +40,14 @@ def resolve_deadlines(free_intervals: list[TimeInterval], deadline_tasks: list[T
     dropped = []
 
     while True:
-        feasible, infeasible = feasibility(deadline_tasks, free_intervals)
+        feasible, infeasible,simulated_free = feasibility(deadline_tasks, free_intervals)
         if feasible:
-            return True, free_intervals, deadline_tasks, remaining_non_deadline, dropped
+            return True, simulated_free, deadline_tasks, remaining_non_deadline, dropped
 
         # Pick lowest-priority droppable non-deadline task
         candidates = [t for t in remaining_non_deadline if t.droppable]
         if not candidates:
-            return False, free_intervals, deadline_tasks, remaining_non_deadline, dropped
+            return False, simulated_free, deadline_tasks, remaining_non_deadline, dropped
 
         task_to_drop = min(candidates, key=lambda t: t.priority)
         remaining_non_deadline.remove(task_to_drop)
@@ -42,12 +56,12 @@ def resolve_deadlines(free_intervals: list[TimeInterval], deadline_tasks: list[T
 
 def find_slot(task: Task, free_intervals: list[TimeInterval]) -> TimeInterval:
     for interval in free_intervals:
-        latest_end = task.deadline.minute if task.deadline else interval.end.minute
-        usable_end = min(interval.end.minute, latest_end)
-        available_minutes = usable_end - interval.start.minute
+        latest_end = task.deadline.minute() if task.deadline else interval.end.minute()
+        usable_end = min(interval.end.minute(), latest_end)
+        available_minutes = usable_end - interval.start.minute()
 
         if available_minutes >= task.duration:
-            start_minute = interval.start.minute
+            start_minute = interval.start.minute()
             end_minute = start_minute + task.duration
             return TimeInterval(TimePoint(start_minute), TimePoint(end_minute))
 
@@ -66,10 +80,6 @@ def place_tasks(free_intervals: list[TimeInterval],
     schedule = []
 
     # Explicit early-first placement strategy
-    for task in sorted(deadline_tasks, key=lambda t: t.deadline.minute if t.deadline else 0):
-        assigned = find_slot(task, free_intervals)
-        schedule.append((task, assigned))
-        free_intervals = subtract_interval(free_intervals, assigned)
 
     for task in sorted(non_deadline_tasks, key=lambda t: t.priority):
         assigned = find_slot(task, free_intervals)

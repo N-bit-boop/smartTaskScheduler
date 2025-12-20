@@ -1,10 +1,12 @@
 from dataclasses import dataclass 
+from functools import total_ordering
 
+@total_ordering
 @dataclass(frozen=True)
 class TimePoint:
-    _minute  = int
+    _minute : int
 
-    def __post__init(self):
+    def __post_init__ (self):
         if self._minute < 0 or self._minute >=1440:
             raise ValueError("Need to fit in one day")
         
@@ -29,12 +31,12 @@ class TimePoint:
 
     def __eq__ (self, other: "TimePoint") -> bool:
         if not isinstance(other, TimePoint):
-            raise TypeError("Does not match")
+            return NotImplemented
         return self._minute == other._minute 
     
     #Duration can be negative, simply means earlier 
     def duration(self, other: "TimePoint") -> int:
         if not isinstance(other, TimePoint):
-            raise TypeErrorError("Expected a timepoint")
+            raise TypeError("Expected a timepoint")
         return (other._minute - self._minute)
         

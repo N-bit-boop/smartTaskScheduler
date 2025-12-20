@@ -1,4 +1,4 @@
-from time.intervals import TimeInterval
+from timecore.intervals import TimeInterval
 
 def normalize(base: TimeInterval, blocked: list[TimeInterval]) -> list[TimeInterval]:
     normalize = []
