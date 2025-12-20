@@ -3,83 +3,79 @@ from timecore.intervals import TimeInterval
 from domain.tasks import Task
 from scheduling.availability import availability
 from scheduling.planner import (
-    feasibility,
     resolve_deadlines,
     place_tasks,
     produce_proposal
 )
 
-# Helper: create TimePoint from hours/minutes
+# -----------------------------
+# Helpers
+# -----------------------------
 def tp(h, m=0):
     return TimePoint(h * 60 + m)
+
 
 def run_test(name, base, blocked, tasks):
     print(f"\n=== {name} ===")
 
+    # Compute free time
     free = availability(base, blocked)
+
+    # Separate tasks
     deadline_tasks = [t for t in tasks if t.deadline]
     non_deadline_tasks = [t for t in tasks if not t.deadline]
 
-    ok, free, deadline_tasks, non_deadline_tasks, dropped = resolve_deadlines(
+    # Resolve deadlines (hard constraints)
+    ok, free, deadline_tasks, non_deadline_tasks, dropped_deadline = resolve_deadlines(
         free, deadline_tasks, non_deadline_tasks
     )
 
     if not ok:
-        print("❌ Infeasible schedule")
-        print("Dropped:", [t.identifier for t in dropped])
+        print("❌ Infeasible (deadlines cannot be satisfied)")
+        print("Dropped:", [t.identifier for t in dropped_deadline])
         return
 
-    # 🔴 NEW: if no free time remains, all remaining optional tasks are dropped
-    if not free:
-        dropped.extend(non_deadline_tasks)
+    # Place optional tasks (best-effort)
+    schedule = place_tasks(free, deadline_tasks, non_deadline_tasks)
+
+    # -----------------------------
+    # PRESENTATION LOGIC (IMPORTANT)
+    # -----------------------------
+    scheduled_ids = {task.identifier for task, _ in schedule}
+
+    dropped_optional = [
+        t.identifier for t in non_deadline_tasks
+        if t.identifier not in scheduled_ids
+    ]
+
+    # Output
+    if schedule:
+        print("✅ Schedule:")
+        for task, interval in schedule:
+            print(f"  {task.identifier}: {interval.start} → {interval.end}")
+    else:
         print("✅ Schedule:")
         print("  (deadlines satisfied, no optional tasks fit)")
-        print("Dropped:", [t.identifier for t in dropped])
-        return
 
-    schedule = place_tasks(free, deadline_tasks, non_deadline_tasks)
-    proposal = produce_proposal(schedule, dropped)
+    print("Dropped:", dropped_optional)
 
-    print("✅ Schedule:")
-    for task, interval in proposal["scheduled"]:
-        print(f"  {task.identifier}: {interval.start} → {interval.end}")
 
-    print("Dropped:", [t.identifier for t in dropped])
-
-# =========================
-# TEST EXECUTION (IMPORTANT)
-# =========================
+# =============================
+# TEST CASE — MULTIPLE DROPS
+# =============================
 if __name__ == "__main__":
 
-    # Scenario 1 — Basic success
     run_test(
-        "Scenario 1: basic success",
+        "Scenario 11: explicit multiple drops",
         base=TimeInterval(tp(9), tp(17)),
         blocked=[],
         tasks=[
-            Task("A", 60, priority=3),
-            Task("B", 120, priority=2),
-        ]
-    )
+            # Deadline task consumes almost entire day
+            Task("A", 450, priority=1, deadline=tp(16, 30)),  # 7.5 hours
 
-    # Scenario 2 — Deadline fits
-    run_test(
-        "Scenario 2: single deadline",
-        base=TimeInterval(tp(9), tp(17)),
-        blocked=[],
-        tasks=[
-            Task("A", 120, priority=1, deadline=tp(12)),
-            Task("B", 60, priority=3),
-        ]
-    )
-
-    # Scenario 3 — Drop low priority
-    run_test(
-        "Scenario 3: drop to resolve",
-        base=TimeInterval(tp(9), tp(12)),
-        blocked=[],
-        tasks=[
-            Task("A", 180, priority=1, deadline=tp(12)),
-            Task("B", 60, priority=5),
+            # All optional tasks too large for remaining 30 minutes
+            Task("B", 60, priority=2),
+            Task("C", 90, priority=3),
+            Task("D", 120, priority=4),
         ]
     )

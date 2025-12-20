@@ -79,10 +79,12 @@ def place_tasks(free_intervals: list[TimeInterval],
 
     schedule = []
 
-    # Explicit early-first placement strategy
-
     for task in sorted(non_deadline_tasks, key=lambda t: t.priority):
-        assigned = find_slot(task, free_intervals)
+        try:
+            assigned = find_slot(task, free_intervals)
+        except ValueError:
+        # Task does not fit --> drop it
+            continue
         schedule.append((task, assigned))
         free_intervals = subtract_interval(free_intervals, assigned)
 

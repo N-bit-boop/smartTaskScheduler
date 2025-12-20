@@ -5,7 +5,7 @@ def normalize(base: TimeInterval, blocked: list[TimeInterval]) -> list[TimeInter
     
     #Makes sure it is within base frame 
     for b in blocked:
-        if not b.overlap(base):
+        if not b.overlaps(base):
             continue
 
             #Process of clipping to ensure that the block exists within the work day 
