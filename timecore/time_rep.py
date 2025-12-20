@@ -1,5 +1,6 @@
 from dataclasses import dataclass 
 from functools import total_ordering
+from datetime import datetime, timedelta, date, time
 
 @total_ordering
 @dataclass(frozen=True)
@@ -39,4 +40,16 @@ class TimePoint:
         if not isinstance(other, TimePoint):
             raise TypeError("Expected a timepoint")
         return (other._minute - self._minute)
+    
+    @staticmethod
+    def combine(d: date, tp: "TimePoint") -> datetime:
+        #Combine a date and this time-of-day into a concrete datetime.
+        h = tp._minute // 60
+        m = tp._minute % 60
+        return datetime.combine(d, time(hour=h, minute=m))
+
+    @staticmethod
+    def add_minutes(dt: datetime, minutes: int) -> datetime:
+        #Return a new datetime minutes after dt.
+        return dt + timedelta(minutes=minutes)
         
