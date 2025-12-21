@@ -1,5 +1,5 @@
 from timecore.intervals import TimeInterval
-from model import CalendarEvent
+from calendarss.modelss import CalendarEvent
 from typing import Iterable, List
 
 def calendar_toBlocked(events: Iterable[CalendarEvent], window: TimeInterval) ->list[TimeInterval]:

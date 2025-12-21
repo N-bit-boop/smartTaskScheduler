@@ -1,12 +1,12 @@
 from timecore.intervals import TimeInterval
 from domain.routines import Routine
-from calendar import CalendarEvent
+from calendarss.modelss import CalendarEvent
 from domain.tasks import Task
-from calendar import calendar_toBlocked
-from calendar import routine_adapter 
-from availability import availability
-from planner import resolve_deadlines
-from planner import place_tasks
+from calendarss.adapter import calendar_toBlocked
+from calendarss.routine_adapter import routine_adapter 
+from scheduling import availability
+from scheduling.planner import resolve_deadlines
+from scheduling.planner import place_tasks
 
 def plan_day(*, window: TimeInterval, weekday: int, tasks: list[Task], routines: list[Routine], calendar: list[CalendarEvent]):
 
