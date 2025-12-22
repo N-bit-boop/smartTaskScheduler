@@ -7,6 +7,7 @@ from scheduling.plan_day import plan_day
 from domain.tasks import Task
 from domain.routines import Routine  
 from datetime import timezone
+from calendarss.google_write import write_events
 
 def main():
     #Choose the planning date
@@ -66,7 +67,7 @@ def main():
     
     print("\nScheduled tasks:")
     for task, interval in proposal["scheduled"]:
-        print(f"{interval.start.str()}–{interval.end.str()}  {task.name}")
+        print(f"{interval.start}–{interval.end}  {task.identifier}")
 
     #  Dropped tasks
     if proposal["dropped"]:
@@ -85,6 +86,17 @@ def main():
         print("\nExplanations:")
         for exp in proposal["explanations"]:
             print("-", exp)
+    
+    confirm = input("\nWrite this schedule to Google Calendar? (y/n): ").strip().lower()
+
+    if confirm == "y":
+        write_events(
+            scheduled=proposal["scheduled"],
+            day=date,
+            dry_run=False,   # 🔴 REAL WRITE
+        )
+    else:
+        print("Schedule not written.")
 
 if __name__ == "__main__":
     main()

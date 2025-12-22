@@ -6,7 +6,7 @@ from googleapiclient.discovery import build
 
 #Read only cal acess
 
-SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 def get_cal_service():
     """
