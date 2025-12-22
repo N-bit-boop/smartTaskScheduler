@@ -40,6 +40,7 @@ def plan_day(*, window: TimeInterval, weekday: int, tasks: list[Task], routines:
     (
         feasible,
         free_after_deadlines,
+        scheduled_deadlines,
         remaining_non_deadline_tasks,
         dropped_tasks,
         infeasible_tasks,
@@ -51,12 +52,14 @@ def plan_day(*, window: TimeInterval, weekday: int, tasks: list[Task], routines:
 
 
     # Place ONLY non-deadline tasks
-    scheduled = place_tasks(
+    scheduled_optional = place_tasks(
         free_after_deadlines,
         remaining_non_deadline_tasks,
     )
 
-    # STEP 6 — Proposal
+    # Final schedule
+    scheduled = scheduled_deadlines + scheduled_optional
+
     return {
         "scheduled": scheduled,
         "dropped": dropped_tasks,

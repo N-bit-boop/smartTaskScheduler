@@ -36,23 +36,78 @@ def feasibility(deadline_tasks: list[Task], free_intervals: list[TimeInterval]) 
 
 def resolve_deadlines(free_intervals: list[TimeInterval], deadline_tasks: list[Task], non_deadline_tasks: list[Task]) -> tuple[bool, list[TimeInterval], list[Task], list[Task]]:
 
-    remaining_non_deadline = non_deadline_tasks.copy()
+    simulated_free = list(free_intervals)
+    scheduled_deadlines = []
+    infeasible = []
+
+    # Sort by earliest deadline first
+    for task in sorted(deadline_tasks, key=lambda t: t.deadline.minute()):
+        placed = False
+
+        for interval in simulated_free:
+            latest_end = task.deadline.minute()
+            usable_end = min(interval.end.minute(), latest_end)
+            available = usable_end - interval.start.minute()
+
+            if available >= task.duration:
+                start = interval.start.minute()
+                end = start + task.duration
+
+                assigned = TimeInterval(
+                    TimePoint(start),
+                    TimePoint(end)
+                )
+
+                scheduled_deadlines.append((task, assigned))
+
+                # Subtract committed interval
+                next_free = []
+                for free in simulated_free:
+                    next_free.extend(free.subtract(assigned))
+                simulated_free = next_free
+
+                placed = True
+                break
+
+        if not placed:
+            infeasible.append(task)
+
+    # If any deadline task is infeasible → attempt dropping optional tasks
     dropped = []
+    remaining_optional = non_deadline_tasks.copy()
 
-    while True:
-        feasible, infeasible,simulated_free = feasibility(deadline_tasks, free_intervals)
-        if feasible:
-            return True, simulated_free, deadline_tasks, remaining_non_deadline, dropped
+    if infeasible:
+        while True:
+            candidates = [t for t in remaining_optional if t.droppable]
+            if not candidates:
+                return (
+                    False,
+                    simulated_free,
+                    scheduled_deadlines,
+                    remaining_optional,
+                    dropped,
+                    infeasible,
+                )
 
-        # Pick lowest-priority droppable non-deadline task
-        candidates = [t for t in remaining_non_deadline if t.droppable]
-        if not candidates:
-            return False, simulated_free, deadline_tasks, remaining_non_deadline, dropped
+            task_to_drop = min(candidates, key=lambda t: t.priority)
+            remaining_optional.remove(task_to_drop)
+            dropped.append(task_to_drop)
 
-        task_to_drop = min(candidates, key=lambda t: t.priority)
-        remaining_non_deadline.remove(task_to_drop)
-        dropped.append(task_to_drop)
-        # Dropped tasks free time → no changes to free_intervals needed
+            # Retry deadline placement
+            return resolve_deadlines(
+                free_intervals,
+                deadline_tasks,
+                remaining_optional,
+            )
+
+    return (
+        True,
+        simulated_free,
+        scheduled_deadlines,
+        remaining_optional,
+        dropped,
+        [],
+    )
 
 def find_slot(task: Task, free_intervals: list[TimeInterval]) -> TimeInterval:
     for interval in free_intervals:
