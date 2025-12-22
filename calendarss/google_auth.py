@@ -21,7 +21,7 @@ def get_cal_service():
     
     #If no valid creds
     if not creds or not creds.valid:
-        if creds and creds.expired and creds.rapt_token:
+        if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
