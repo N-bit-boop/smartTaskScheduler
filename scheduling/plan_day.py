@@ -4,16 +4,16 @@ from calendarss.modelss import CalendarEvent
 from domain.tasks import Task
 from calendarss.adapter import calendar_toBlocked
 from calendarss.routine_adapter import routine_adapter 
-from scheduling import availability
+from scheduling.availability import availability
 from scheduling.planner import resolve_deadlines
 from scheduling.planner import place_tasks
 
-def plan_day(*, window: TimeInterval, weekday: int, tasks: list[Task], routines: list[Routine], calendar: list[CalendarEvent]):
+def plan_day(*, window: TimeInterval, weekday: int, tasks: list[Task], routines: list[Routine], calendar_events: list[CalendarEvent]):
 
-    warnings = list[str]
-    explanations = list[str] 
+    warnings: list[str] = []
+    explanations: list[str] = [] 
 
-    blocked_calender = calendar_toBlocked(calendar, window)
+    blocked_calender = calendar_toBlocked(calendar_events, window)
 
     blocked_routine = routine_adapter(window, routines, weekday)
 
@@ -36,23 +36,21 @@ def plan_day(*, window: TimeInterval, weekday: int, tasks: list[Task], routines:
             non_deadlineT.append(task)
 
 
-     # STEP 4 — Resolve deadlines (this COMMITs deadline tasks)
+     # Resolve deadlines (this COMMITs deadline tasks)
     (
         feasible,
         free_after_deadlines,
         remaining_non_deadline_tasks,
         dropped_tasks,
         infeasible_tasks,
-        resolution_explanations,
     ) = resolve_deadlines(
         free,
         deadlineT,
         non_deadlineT,
     )
 
-    explanations.extend(resolution_explanations)
 
-    # STEP 5 — Place ONLY non-deadline tasks
+    # Place ONLY non-deadline tasks
     scheduled = place_tasks(
         free_after_deadlines,
         remaining_non_deadline_tasks,

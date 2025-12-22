@@ -73,9 +73,7 @@ def subtract_interval(free_intervals: list[TimeInterval], assigned: TimeInterval
         result.extend(interval.subtract(assigned))
     return result
 
-def place_tasks(free_intervals: list[TimeInterval],
-                deadline_tasks: list[Task],
-                non_deadline_tasks: list[Task]) -> list[tuple[Task, TimeInterval]]:
+def place_tasks(free_intervals: list[TimeInterval],non_deadline_tasks: list[Task]) -> list[tuple[Task, TimeInterval]]:
 
     schedule = []
 
