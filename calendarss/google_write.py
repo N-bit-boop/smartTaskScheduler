@@ -79,8 +79,11 @@ def get_existing_sts_events(service, day, calendar_id = "primary") -> Dict[str, 
     returns tasks_id --> event_id for sts events 
     """
 
-    start_dt = datetime.combine(day, datetime.min.time())
+    LOCAL_TZ = ZoneInfo("America/Toronto")
+
+    start_dt = datetime.combine(day, datetime.min.time(), tzinfo=LOCAL_TZ)
     end_dt = start_dt + timedelta(days=1)
+  
 
     events = (
         service.events()
