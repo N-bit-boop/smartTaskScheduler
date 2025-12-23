@@ -8,6 +8,9 @@ from timecore.intervals import TimeInterval
 from calendarss.google_auth import get_cal_service
 from zoneinfo import ZoneInfo
 
+from typing import Dict
+from datetime import datetime, timedelta
+
 
 def write_events(scheduled: List[Tuple[Task, TimeInterval]], day: date, calendar_id: str = "primary", dry_run:bool = True):
     """
@@ -15,6 +18,7 @@ def write_events(scheduled: List[Tuple[Task, TimeInterval]], day: date, calendar
     """
 
     service = get_cal_service()
+    existing = get_existing_sts_events(service, day, calendar_id)
     LOCAL_TZ = ZoneInfo("America/Toronto")
 
     for task, interval in scheduled:
@@ -32,28 +36,72 @@ def write_events(scheduled: List[Tuple[Task, TimeInterval]], day: date, calendar
                 "dateTime": end_dt.isoformat(),
                 "timeZone": "America/Toronto",
             },
+            "extendedProperties": {
+            "private": {
+            "sts": "1", #Adding id so no duplicates are made
+            "sts_task_id": task.identifier,
+            "sts_day": day.isoformat(),
+             }
+
+           }
         }  
 
 
-        if dry_run:
-            print(
-                f"[DRY-RUN] Would create event: "
-                f"{task.identifier} "
-                f"{start_dt.strftime('%H:%M')}–{end_dt.strftime('%H:%M')}"
-            )
-            continue
+        if task.identifier in existing:
+            if dry_run:
+                print(f"[DRY-RUN] Would update {task.identifier}")
+                continue
 
-        try:
-            service.events().insert(
+            service.events().update(
                 calendarId=calendar_id,
-                body=event_body
+                eventId=existing[task.identifier],
+                body=event_body,
             ).execute()
 
-            print(
-                f"[CREATED] {task.identifier} "
-                f"{start_dt.strftime('%H:%M')}–{end_dt.strftime('%H:%M')}"
-            )
+            print(f"[UPDATED] {task.identifier}")
 
-        except HttpError as err:
-            print(f"[ERROR] Failed to create event for {task.identifier}: {err}")
+        else:
+            if dry_run:
+                print(f"[DRY-RUN] Would create {task.identifier}")
+                continue
+
+            service.events().insert(
+                calendarId=calendar_id,
+                body=event_body,
+            ).execute()
+
+            print(f"[CREATED] {task.identifier}")
+
+
+
+def get_existing_sts_events(service, day, calendar_id = "primary") -> Dict[str, str]:
+    """
+    returns tasks_id --> event_id for sts events 
+    """
+
+    start_dt = datetime.combine(day, datetime.min.time())
+    end_dt = start_dt + timedelta(days=1)
+
+    events = (
+        service.events()
+        .list(
+            calendarId=calendar_id,
+            timeMin=start_dt.isoformat(),
+            timeMax=end_dt.isoformat(),
+            singleEvents=True,
+            privateExtendedProperty="sts=1",
+        )
+        .execute()
+        .get("items", [])
+    )
+
+    mapping = {}
+
+    for e in events: 
+        props = e.get("extendedProperties", {}).get("private", {})
+        task_id = props.get("sts_task_id")
+        if task_id:
+            mapping[task_id] = e["id"]
+        
+    return mapping 
         
