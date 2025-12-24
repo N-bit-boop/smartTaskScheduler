@@ -8,6 +8,7 @@ from domain.tasks import Task
 from domain.routines import Routine  
 from datetime import timezone
 from calendarss.google_write import write_events
+from cli.storage.task_store import load_tasks
 
 def main():
     #Choose the planning date
@@ -37,11 +38,10 @@ def main():
         calendar_events = []
 
     # Load tasks and routines (MVP: hard-coded)
-    tasks = [
-        Task(identifier="Task A", duration=60, priority=5, deadline=None, droppable=False),
-        Task(identifier="Task B", duration=90, priority=3, deadline=None, droppable=True),
-        
-    ]
+    tasks = load_tasks()
+
+    if not tasks:
+        print("No tasks found. Add tasks using sts add-task")
 
     routines = [
         Routine(name="Gym", start_time=TimePoint(7*60), duration=60, recurrence=0b1111100),  # Mon-Fri

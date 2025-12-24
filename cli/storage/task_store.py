@@ -79,29 +79,30 @@ def load_tasks() -> List[Task]:
     if not TASKS_PATH.exists():
         return []
     
-    try: #read the file and check for any deformaty
-        with TASKS_PATH.open("r", encoding="utf-8") as f:
-            raw = json.load(f)
+    try:
+        content = TASKS_PATH.read_text(encoding="utf-8").strip()
+        if not content:
+            return []   
+
+        raw = json.loads(content)
+
     except json.JSONDecodeError as e:
         raise ValueError("Malformed tasks.json") from e
-    
-    if not isinstance(raw, list):
-        raise ValueError("Task.json muts include a list")
-    
-    tasks: List[Task] = []
 
-    seen_ids =set()
+    if not isinstance(raw, list):
+        raise ValueError("tasks.json must contain a list")
+
+    tasks: List[Task] = []
+    seen_ids = set()
 
     for entry in raw:
-        task =_dict_to_task(entry)
-
+        task = _dict_to_task(entry)
         if task.identifier in seen_ids:
             raise ValueError(f"Duplicate task identifier: {task.identifier}")
-        
         seen_ids.add(task.identifier)
         tasks.append(task)
-    
-    return tasks 
+
+    return tasks
 
 
 def save_tasks(tasks: List[Task]) -> None:

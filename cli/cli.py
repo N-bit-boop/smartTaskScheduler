@@ -1,6 +1,7 @@
 import sys
-from commands.add_task import run as add_task
-from commands .list_task import run as list_tasks
+from cli.commands.add_task import run as add_task
+from cli.commands .list_task import run as list_tasks
+from cli.commands .remove_task import run as remove_task
 
 
 def main():
@@ -14,6 +15,11 @@ def main():
         add_task()
     elif cmd == "list-tasks":
         list_tasks()
+    elif cmd == "remove-task":
+        if len(sys.argv) < 3:
+            print("usage: sts remove task <name|index>")
+            return
+        remove_task(sys.argv[2])
     else:
         print(f"Uknown command: {cmd}")
 
