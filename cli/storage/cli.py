@@ -1,5 +1,6 @@
 import sys
 from commands.add_task import run as add_task
+from commands .list_task import run as list_tasks
 
 
 def main():
@@ -11,6 +12,8 @@ def main():
 
     if cmd  == "add-task":
         add_task()
+    elif cmd == "list-tasks":
+        list_tasks()
     else:
         print(f"Uknown command: {cmd}")
 
