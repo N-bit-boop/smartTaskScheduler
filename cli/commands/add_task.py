@@ -1,27 +1,30 @@
 from domain.tasks import Task
 from timecore.time_rep import TimePoint
 from cli.storage.task_store import add_task
+from datetime import date, datetime
 
 def prompt(msg: str) -> str:
     return input(msg).strip()
 
 def parse_deadline(raw: str):
+    raw = raw.strip()
+
     if not raw:
         return None
 
+    # Date only: YYYY-MM-DD
+    if len(raw) == 10:
+        try:
+            return date.fromisoformat(raw)
+        except ValueError:
+            raise ValueError("Deadline must be YYYY-MM-DD or YYYY-MM-DD HH:MM")
+
+    # Date + time: YYYY-MM-DD HH:MM
     try:
-        parts = raw.split(":")
-        if len(parts) != 2:
-            raise ValueError
+        return datetime.fromisoformat(raw)
+    except ValueError:
+        raise ValueError("Deadline must be YYYY-MM-DD or YYYY-MM-DD HH:MM")
 
-        h, m = map(int, parts)
-        if not (0 <= h < 24 and 0 <= m < 60):
-            raise ValueError
-
-        return TimePoint(h * 60 + m)
-
-    except Exception:
-        raise ValueError("Deadline must be in HH:MM (24-hour) format")
 
 
 def parse_droppable(raw: str) -> bool:
@@ -42,7 +45,7 @@ def run():
         duration = int(prompt("Duration (minutes): "))
         priority = int(prompt("Priority (1–5): "))
 
-        deadline_raw = prompt("Deadline (HH:MM or blank): ")
+        deadline_raw = prompt("YYYY-MM-DD or YYYY-MM-DD-HH:MM: ")
         droppable_raw = prompt("Droppable? (y/n): ")
 
         deadline = parse_deadline(deadline_raw)

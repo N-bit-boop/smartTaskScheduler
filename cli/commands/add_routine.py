@@ -61,7 +61,7 @@ def run():
         if duration <= 0:
             raise ValueError("Duration must be positive")
 
-        days_raw = prompt("Days (mon,tue,wed,thu,fri): ")
+        days_raw = prompt("Days (mon,tue,wed,thu,fri,sat,sun): ")
         recurrence = parse_recurrence(days_raw)
 
         protected_raw = prompt("Protected? (y/n): ").lower()

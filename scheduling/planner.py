@@ -8,11 +8,11 @@ def feasibility(deadline_tasks: list[Task], free_intervals: list[TimeInterval]) 
     simulated_free = list(free_intervals)
     infeasible = []
 
-    for task in sorted(deadline_tasks, key=lambda t: t.deadline.minute()):
+    for task in sorted(deadline_tasks, key=lambda t: t.deadline_tp.minute()):
         placed = False
 
         for interval in simulated_free:
-            latest_end = task.deadline.minute()
+            latest_end = task.deadline_tp.minute()
             usable_end = min(interval.end.minute(), latest_end)
             available = usable_end - interval.start.minute()
 
@@ -41,11 +41,11 @@ def resolve_deadlines(free_intervals: list[TimeInterval], deadline_tasks: list[T
     infeasible = []
 
     # Sort by earliest deadline first
-    for task in sorted(deadline_tasks, key=lambda t: t.deadline.minute()):
+    for task in sorted(deadline_tasks, key=lambda t: t.deadline_tp.minute()):
         placed = False
 
         for interval in simulated_free:
-            latest_end = task.deadline.minute()
+            latest_end = task.deadline_tp.minute()
             usable_end = min(interval.end.minute(), latest_end)
             available = usable_end - interval.start.minute()
 
@@ -111,7 +111,7 @@ def resolve_deadlines(free_intervals: list[TimeInterval], deadline_tasks: list[T
 
 def find_slot(task: Task, free_intervals: list[TimeInterval]) -> TimeInterval:
     for interval in free_intervals:
-        latest_end = task.deadline.minute() if task.deadline else interval.end.minute()
+        latest_end =task.deadline_tp.minute() if task.deadline else interval.end.minute()
         usable_end = min(interval.end.minute(), latest_end)
         available_minutes = usable_end - interval.start.minute()
 

@@ -29,26 +29,28 @@ def plan_day(*, window: TimeInterval, weekday: int, tasks: list[Task], routines:
 
     planning_date = date.today()  # or pass this into plan_day explicitly
 
-    deadlineT: list[Task] = []
-    non_deadlineT: list[Task] = []
+    deadlineT = []
+    non_deadlineT = []
 
     for task in tasks:
-        tp_deadline = _deadline_for_day(task, planning_date)
-
-        if tp_deadline is not None:
-            # create a DAY-SCOPED task for the scheduler
-            deadlineT.append(
-                Task(
-                    identifier=task.identifier,
-                    duration=task.duration,
-                    priority=task.priority,
-                    deadline=tp_deadline,   # TimePoint ONLY HERE
-                    droppable=task.droppable,
-                )
-            )
-        else:
+        if task.deadline is None:
             non_deadlineT.append(task)
+            continue
 
+        # Convert absolute deadline → TimePoint if it applies today
+        if isinstance(task.deadline, datetime):
+            if task.deadline.date() != planning_date:
+                continue  # deadline not today
+            tp = TimePoint(task.deadline.hour * 60 + task.deadline.minute)
+
+        elif isinstance(task.deadline, date):
+            if task.deadline != planning_date:
+                continue
+            tp = TimePoint(23 * 60 + 59)  # end of day
+
+        # Attach derived TimePoint just for planning
+        task._deadline_tp = tp
+        deadlineT.append(task)
 
      # Resolve deadlines (this COMMITs deadline tasks)
     (

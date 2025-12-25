@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from domain.tasks import Task
 from timecore.time_rep import TimePoint
+from datetime import date, datetime
 
 TASKS_PATH = Path("data/tasks.json")
 TASKS_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -19,11 +20,8 @@ def _task_to_dict(task: Task) -> dict:
         "duration": task.duration,
         "priority": task.priority,
         "droppable": task.droppable,
-        "deadline": (
-            f"{task.deadline.minute() // 60:02d}:{task.deadline.minute() % 60:02d}"
-            if task.deadline is not None
-            else None
-        ),
+       "deadline": task.deadline.isoformat() if task.deadline else None
+        
     }
 
 
@@ -59,9 +57,11 @@ def _dict_to_task(data: dict) -> Task:
         deadline = None
     elif isinstance(deadline_raw, str):
         try:
-            hour, minute = map(int, deadline_raw.split(":"))
-            deadline = TimePoint(hour * 60 + minute)
-        except Exception:
+            if len(deadline_raw) == 10:
+                deadline = date.fromisoformat(deadline_raw)
+            else:
+                deadline = datetime.fromisoformat(deadline_raw)
+        except ValueError:
             raise ValueError(f"Invalid deadline format: {deadline_raw}")
     else:
         raise ValueError("Deadline must be string or null")
