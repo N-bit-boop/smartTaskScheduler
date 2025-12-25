@@ -12,11 +12,11 @@ def main():
 
     cmd = sys.argv[1]
 
-    if cmd  == "add-task":
+    if cmd  == "add":
         add_task()
-    elif cmd == "list-tasks":
+    elif cmd == "list":
         list_tasks()
-    elif cmd == "remove-task":
+    elif cmd == "remove":
         if len(sys.argv) < 3:
             print("usage: sts remove task <name|index>")
             return

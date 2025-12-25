@@ -66,4 +66,4 @@ def run():
         print(f"  Droppable: {'yes' if droppable else 'no'}")
 
     except Exception as e:
-        print(f"\n✖ Error: {e}")
+        print(f"\n Error: {e}")

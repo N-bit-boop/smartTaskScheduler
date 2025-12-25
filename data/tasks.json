@@ -12,5 +12,12 @@
     "priority": 5,
     "droppable": false,
     "deadline": null
+  },
+  {
+    "identifier": "blaa",
+    "duration": 10,
+    "priority": 3,
+    "droppable": false,
+    "deadline": "10:32"
   }
 ]
