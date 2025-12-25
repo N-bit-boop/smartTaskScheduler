@@ -9,6 +9,7 @@ from domain.routines import Routine
 from datetime import timezone
 from calendarss.google_write import write_events
 from cli.storage.task_store import load_tasks
+from cli.storage.routines_store import load_routines
 
 def main():
     #Choose the planning date
@@ -37,17 +38,24 @@ def main():
         print("WARNING: Could not fetch Google events:", e)
         calendar_events = []
 
-    # Load tasks and routines (MVP: hard-coded)
-    tasks = load_tasks()
+    # Load tasks and routines 
+
+    try:
+        tasks = load_tasks()
+    except Exception as e:
+        print("Error laoding tasks: ", e )
+        return
+    
+    try:
+        routines = load_routines()
+    except Exception as e:
+        print("Error laoding routines: ", e )
+        return
 
     if not tasks:
         print("No tasks found. Add tasks using sts add-task")
 
-    routines = [
-        Routine(name="Gym", start_time=TimePoint(7*60), duration=60, recurrence=0b1111100),  # Mon-Fri
-        Routine(name="Lunch", start_time=TimePoint(12*60), duration=60, recurrence=0b1111111),  # Daily
-        
-    ]
+    
 
     # Call plan_day
     proposal = plan_day(

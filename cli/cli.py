@@ -4,6 +4,8 @@ from cli.commands .list_task import run as list_tasks
 from cli.commands .remove_task import run as remove_task
 from cli.commands.sync import run as sync
 from cli.commands.add_routine import run as add_routine
+from cli.commands.list_routine import run as list_routine
+from cli.commands.remove_routine import run as remove_routine
 
 
 def main():
@@ -26,6 +28,10 @@ def main():
         sync()
     elif cmd == "add-routine":
         add_routine()
+    elif cmd == "list-routine":
+        list_routine()
+    elif cmd == "remove-routine":
+        remove_routine()
     else:
         print(f"Uknown command: {cmd}")
 
