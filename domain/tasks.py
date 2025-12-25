@@ -1,8 +1,9 @@
 from timecore.time_rep import TimePoint
-from typing import Optional
+from typing import Optional, Union
+from datetime import date, datetime
 
 class Task:
-    def __init__(self, identifier: str, duration: int, priority: int, deadline: Optional[TimePoint] = None, droppable: bool = True):
+    def __init__(self, identifier: str, duration: int, priority: int, deadline: Optional[Union[date,datetime]] = None, droppable: bool = True):
 
         if not isinstance(identifier, str) or not identifier:
             raise TypeError("Must be a non mepty string")
@@ -16,8 +17,8 @@ class Task:
             raise TypeError("Must be a non zero integer")
         self.priority = priority
 
-        if deadline is not None and not isinstance(deadline, TimePoint):
-            raise TypeError("Deadline must be a TimePoint or None")
+        if deadline is not None and not isinstance(deadline, (date, datetime)):
+            raise TypeError("Deadline must be a date, datetime, or None")
         self.deadline = deadline
 
         

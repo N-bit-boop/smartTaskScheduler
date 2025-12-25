@@ -7,6 +7,8 @@ from calendarss.routine_adapter import routine_adapter
 from scheduling.availability import availability
 from scheduling.planner import resolve_deadlines
 from scheduling.planner import place_tasks
+from datetime import date, datetime
+from timecore.time_rep import TimePoint
 
 def plan_day(*, window: TimeInterval, weekday: int, tasks: list[Task], routines: list[Routine], calendar_events: list[CalendarEvent]):
 
@@ -25,13 +27,25 @@ def plan_day(*, window: TimeInterval, weekday: int, tasks: list[Task], routines:
     if not free:
         warnings.append("No free time in this window")
 
-    deadlineT = []
+    planning_date = date.today()  # or pass this into plan_day explicitly
 
-    non_deadlineT = []
+    deadlineT: list[Task] = []
+    non_deadlineT: list[Task] = []
 
     for task in tasks:
-        if task.deadline is not None:
-            deadlineT.append(task)
+        tp_deadline = _deadline_for_day(task, planning_date)
+
+        if tp_deadline is not None:
+            # create a DAY-SCOPED task for the scheduler
+            deadlineT.append(
+                Task(
+                    identifier=task.identifier,
+                    duration=task.duration,
+                    priority=task.priority,
+                    deadline=tp_deadline,   # TimePoint ONLY HERE
+                    droppable=task.droppable,
+                )
+            )
         else:
             non_deadlineT.append(task)
 
@@ -67,4 +81,28 @@ def plan_day(*, window: TimeInterval, weekday: int, tasks: list[Task], routines:
         "warnings": warnings,
         "explanations": explanations,
     }
+
+def _deadline_for_day(task: Task, planning_date: date) -> TimePoint | None:
+    """
+    Convert a task's absolute deadline into a TimePoint constraint
+    for THIS planning day.
+    """
+    if task.deadline is None:
+        return None
+
+    # date-only deadline
+    if isinstance(task.deadline, date) and not isinstance(task.deadline, datetime):
+        if task.deadline < planning_date:
+            return TimePoint(0)        # overdue
+        if task.deadline > planning_date:
+            return None               # not due today
+        return TimePoint(1439)        # end of day
+
+    # datetime deadline
+    if isinstance(task.deadline, datetime):
+        if task.deadline.date() != planning_date:
+            return None
+        return TimePoint(task.deadline.hour * 60 + task.deadline.minute)
+
+    return None
      
