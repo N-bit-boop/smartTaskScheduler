@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "identifier": "Mi",
+    "duration": 100,
+    "priority": 4,
+    "droppable": false,
+    "deadline": null
+  },
+  {
+    "identifier": "Continue making STS",
+    "duration": 60,
+    "priority": 5,
+    "droppable": false,
+    "deadline": null
+  }
+]

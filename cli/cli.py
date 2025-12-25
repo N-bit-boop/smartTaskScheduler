@@ -2,6 +2,7 @@ import sys
 from cli.commands.add_task import run as add_task
 from cli.commands .list_task import run as list_tasks
 from cli.commands .remove_task import run as remove_task
+from cli.commands.sync import run as sync
 
 
 def main():
@@ -20,6 +21,8 @@ def main():
             print("usage: sts remove task <name|index>")
             return
         remove_task(sys.argv[2])
+    elif cmd == "sync":
+        sync()
     else:
         print(f"Uknown command: {cmd}")
 

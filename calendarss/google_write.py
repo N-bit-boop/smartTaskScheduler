@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 from typing import Dict
 from datetime import datetime, timedelta
 
+LOCAL_TZ = ZoneInfo("America/Toronto")
 
 def write_events(scheduled: List[Tuple[Task, TimeInterval]], day: date, calendar_id: str = "primary", dry_run:bool = True):
     """
@@ -19,8 +20,28 @@ def write_events(scheduled: List[Tuple[Task, TimeInterval]], day: date, calendar
 
     service = get_cal_service()
     existing = get_existing_sts_events(service, day, calendar_id)
-    LOCAL_TZ = ZoneInfo("America/Toronto")
+    scheduled_ids = {task.identifier for task, _ in scheduled}
 
+    #delete orphaned events 
+    to_delete = set(existing.keys()) - scheduled_ids
+
+    for task_id in to_delete:
+        event_id = existing[task_id]
+
+        if dry_run:
+            print(f"[DRY-RUN] Would delete {task_id}")
+            continue
+
+        try:
+            service.events().delete(
+                calendarId=calendar_id,
+                eventId=event_id,
+            ).execute()
+            print(f"[DELETED] {task_id}")
+        except HttpError as err:
+            print(f"[ERROR] Failed to delete {task_id}: {err}")
+
+    #create update scheduled tasks 
     for task, interval in scheduled:
         start_dt = datetime.combine(day,time(hour=interval.start.minute() // 60, minute=interval.start.minute() % 60), tzinfo=LOCAL_TZ,)
         end_dt = datetime.combine(day,time(hour=interval.end.minute() // 60, minute=interval.end.minute() % 60), tzinfo=LOCAL_TZ,)
