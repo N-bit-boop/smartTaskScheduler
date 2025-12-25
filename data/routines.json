@@ -1,0 +1,9 @@
+[
+  {
+    "name": "akal",
+    "start_time": "07:00",
+    "duration": 60,
+    "recurrence": 1,
+    "protected": true
+  }
+]

@@ -3,6 +3,7 @@ from cli.commands.add_task import run as add_task
 from cli.commands .list_task import run as list_tasks
 from cli.commands .remove_task import run as remove_task
 from cli.commands.sync import run as sync
+from cli.commands.add_routine import run as add_routine
 
 
 def main():
@@ -23,6 +24,8 @@ def main():
         remove_task(sys.argv[2])
     elif cmd == "sync":
         sync()
+    elif cmd == "add-routine":
+        add_routine()
     else:
         print(f"Uknown command: {cmd}")
 
