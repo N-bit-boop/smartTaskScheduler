@@ -1,9 +1,9 @@
 from datetime import date, datetime
-from typing import Optional, Union
+from typing import Optional
 
 
 class Task:
-    def __init__(self,identifier: str,duration: int,priority: int,deadline: Optional[Union[date, datetime]] = None,droppable: bool = True,):
+    def __init__(self,identifier: str,duration: int,priority: int,deadline: Optional[date] = None,droppable: bool = True,):
         if not isinstance(identifier, str) or not identifier:
             raise TypeError("Identifier must be a non-empty string")
         self.identifier = identifier

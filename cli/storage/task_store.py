@@ -1,27 +1,25 @@
+
 import json
 from pathlib import Path
 from typing import List, Optional
+from datetime import date
 
 from domain.tasks import Task
-from timecore.time_rep import TimePoint
-from datetime import date, datetime
 
 TASKS_PATH = Path("data/tasks.json")
 TASKS_PATH.parent.mkdir(parents=True, exist_ok=True)
 
+PRIORITY_MIN = 1
+PRIORITY_MAX = 5
 
-PRIORITY_MIN = 1 
-PRIORITY_MAX = 5 
 
-#decompose the task
 def _task_to_dict(task: Task) -> dict:
     return {
         "identifier": task.identifier,
         "duration": task.duration,
         "priority": task.priority,
         "droppable": task.droppable,
-       "deadline": task.deadline.isoformat() if task.deadline else None
-        
+        "deadline": task.deadline.isoformat() if task.deadline is not None else None,
     }
 
 
@@ -35,57 +33,45 @@ def _dict_to_task(data: dict) -> Task:
     except KeyError as e:
         raise ValueError(f"Missing field: {e}")
 
-    # Identifier
     if not isinstance(identifier, str) or not identifier.strip():
         raise ValueError("Task identifier must be a non-empty string")
 
-    # Duration
     if not isinstance(duration, int) or duration <= 0:
         raise ValueError("Task duration must be a positive integer")
 
-    # Priority
     if not isinstance(priority, int) or not (PRIORITY_MIN <= priority <= PRIORITY_MAX):
         raise ValueError("Task priority out of range")
 
-    # Droppable
     if not isinstance(droppable, bool):
         raise ValueError("Task droppable must be boolean")
 
-    # Deadline
-    deadline: Optional[TimePoint]
+    deadline: Optional[date]
     if deadline_raw is None:
         deadline = None
     elif isinstance(deadline_raw, str):
         try:
-            if len(deadline_raw) == 10:
-                deadline = date.fromisoformat(deadline_raw)
-            else:
-                deadline = datetime.fromisoformat(deadline_raw)
-        except ValueError:
-            raise ValueError(f"Invalid deadline format: {deadline_raw}")
+            deadline = date.fromisoformat(deadline_raw)
+        except Exception:
+            raise ValueError(f"Invalid deadline format (expected YYYY-MM-DD): {deadline_raw}")
     else:
         raise ValueError("Deadline must be string or null")
 
     return Task(
-        identifier=identifier,
+        identifier=identifier.strip(),
         duration=duration,
         priority=priority,
         droppable=droppable,
         deadline=deadline,
     )
 
-#Load tasks from disk and ensure that all are valid 
+
 def load_tasks() -> List[Task]:
     if not TASKS_PATH.exists():
         return []
-    
+
     try:
-        content = TASKS_PATH.read_text(encoding="utf-8").strip()
-        if not content:
-            return []   
-
-        raw = json.loads(content)
-
+        with TASKS_PATH.open("r", encoding="utf-8") as f:
+            raw = json.load(f)
     except json.JSONDecodeError as e:
         raise ValueError("Malformed tasks.json") from e
 
@@ -107,28 +93,22 @@ def load_tasks() -> List[Task]:
 
 def save_tasks(tasks: List[Task]) -> None:
     data = [_task_to_dict(task) for task in tasks]
-
-    with TASKS_PATH.open("w", encoding='utf-8') as f:
+    with TASKS_PATH.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
-def add_task(task:Task) -> None:
-    tasks = load_tasks()
 
-    if any(t.identifier == task.identifier for t in tasks ):
+def add_task(task: Task) -> None:
+    tasks = load_tasks()
+    if any(t.identifier == task.identifier for t in tasks):
         raise ValueError(f"Duplicate task identifier: {task.identifier}")
-    
     tasks.append(task)
     save_tasks(tasks)
-
 
 
 def remove_task(identifier: str) -> bool:
     tasks = load_tasks()
     new_tasks = [t for t in tasks if t.identifier != identifier]
-
     if len(new_tasks) == len(tasks):
         return False
-    
     save_tasks(new_tasks)
-
     return True

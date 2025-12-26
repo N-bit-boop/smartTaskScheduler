@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "name": "Mental break",
+    "start_time": "04:00",
+    "duration": 60,
+    "recurrence": 19,
+    "protected": true
+  }
+]

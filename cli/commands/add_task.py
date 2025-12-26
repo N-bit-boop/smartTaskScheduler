@@ -17,7 +17,7 @@ def parse_deadline(raw: str):
         try:
             return date.fromisoformat(raw)
         except ValueError:
-            raise ValueError("Deadline must be YYYY-MM-DD or YYYY-MM-DD HH:MM")
+            raise ValueError("Deadline must be YYYY-MM-DD or blank")
 
     # Date + time: YYYY-MM-DD HH:MM
     try:
@@ -43,9 +43,9 @@ def run():
             raise ValueError("Task name cannot be empty")
 
         duration = int(prompt("Duration (minutes): "))
-        priority = int(prompt("Priority (1–5): "))
+        priority = int(prompt("Priority (1-5): "))
 
-        deadline_raw = prompt("YYYY-MM-DD or YYYY-MM-DD-HH:MM: ")
+        deadline_raw = prompt("YYYY-MM-DD or blank: ")
         droppable_raw = prompt("Droppable? (y/n): ")
 
         deadline = parse_deadline(deadline_raw)
