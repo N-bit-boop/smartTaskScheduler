@@ -96,6 +96,7 @@ STS/
 │   └── routines.json
 │
 └── README.md
+```
 
 ## 🚀 Features
 
@@ -109,15 +110,7 @@ STS/
 
 ---
 
-## 🛠 Tech Stack
 
-- Python 3  
-- Google Calendar API  
-- OAuth 2.0  
-- CLI interface  
-- Interval scheduling & greedy algorithms  
-
----
 
 ## 📦 Setup
 
@@ -125,21 +118,26 @@ STS/
 
 ```bash
 python -m venv venv
+```
 Activate it:
 
-bash
-Copy code
 # macOS / Linux
+```bash
+
 source venv/bin/activate
+```
 
 # Windows
+```bash
 venv\Scripts\activate
+```
 Install dependencies:
 
-bash
-Copy code
+```bash
 pip install google-api-python-client google-auth google-auth-oauthlib
-2. Google Calendar API Setup
+```
+
+### 2. Google Calendar API Setup
 STS uses Google OAuth to sync schedules to your calendar.
 
 Go to Google Cloud Console
@@ -156,32 +154,32 @@ Place credentials.json in the project root
 
 On the first run, your browser will open to authorize access to your Google Calendar.
 
-🧪 Usage
+## 🧪 Usage
 Run all commands from the project root.
 
-Add a Task
-bash
-Copy code
+# Add a Task
+```bash
 python -m cli.cli add-task
-List Tasks
-bash
-Copy code
+```
+# List Tasks
+```bash
 python -m cli.cli list-tasks
-Remove a Task
-bash
-Copy code
+```
+#Remove a Task
+```bash
 python -m cli.cli remove-task <task-id>
-Add a Routine
-bash
-Copy code
+```
+# Add a Routine
+```bash
 python -m cli.cli add-routine
-Generate and Schedule the Day
-bash
-Copy code
+```
+# Generate and Schedule the Day
+```bash
 python -m main.run_day
+```
 You will be asked for confirmation before any events are written to Google Calendar.
 
-🔄 Google Calendar Sync Rules
+## 🔄 Google Calendar Sync Rules
 STS is designed to never interfere with events you did not create.
 
 Events created by STS are internally tagged
